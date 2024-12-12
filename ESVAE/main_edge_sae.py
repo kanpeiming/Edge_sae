@@ -36,6 +36,7 @@ from boundary_loss import boundary_loss
 max_accuracy = 0
 min_loss = 1000
 
+# 12.12 实验推送
 
 def add_hook(net):
     count_mul_add = CountMulAddSNN()
