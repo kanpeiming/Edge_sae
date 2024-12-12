@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="61bfe0ca-c85b-47eb-aee9-dad5b1174483" name="kpm(ESVAE)">
+        <fileTransfer accessType="SFTP" host="127.0.0.1" port="253" sshConfigId="7e8e3e6f-80d8-4036-9d2d-fea99133139c" sshConfig="3号机" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
