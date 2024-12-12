@@ -11,7 +11,7 @@ Network:
   n_class: 10
   latent_dim: 128
   input_size: 32
-  model: "ESVAE" # ESVAE or ESVAE_large
+  model: "SAE" # "ESVAE" # ESVAE or ESVAE_large
   k: 20 # multiplier of channel
   scheduled: true # whether to apply scheduled sampling
   loss_func: 'mmd' # mmd or kld

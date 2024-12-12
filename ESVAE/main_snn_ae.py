@@ -14,7 +14,7 @@ from utils import AverageMeter
 from utils import aboutCudaDevices
 
 from datasets import load_dataset_snn
-import svae_models.sae as sae
+import svae_models.edge_sae as sae
 
 
 max_accuracy = 0
