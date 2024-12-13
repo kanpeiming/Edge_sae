@@ -7,6 +7,9 @@ import torch.nn.functional as F
 
 import global_v as glv
 
+# 12.13
+from .snn_layers import MembraneOutputLayer
+
 # 12.12
 # 新增损失函数
 from boundary_loss import boundary_loss
@@ -35,6 +38,12 @@ class SAE(nn.Module):
         """
         # 添加边缘提取模块
         self.edge_extractor = SobelEdgeExtractionModule(device=device, in_channels=glv.network_config['in_channels'])
+
+        # ... 构建编码器和解码器 ...
+
+        self.membrane_output_layer = MembraneOutputLayer(self.n_steps)  # 使用 self.n_steps
+
+        self.psp = PSP()
 
         # Build Encoder
         modules = []
@@ -107,13 +116,14 @@ class SAE(nn.Module):
 
         self.p = 0
 
-        self.membrane_output_layer = MembraneOutputLayer(n_steps)
+        self.membrane_output_layer = MembraneOutputLayer(self.n_steps)
 
         self.psp = PSP()
 
     def forward(self, x, scheduled=False):
+
         latent = self.encode(x)
-        x_recon = self.decode(latent)
+        x_recon = self.decode(latent)  # [N, 1, H, W]
         return x_recon, latent
 
     def encode(self, x):
@@ -171,6 +181,7 @@ class SAE(nn.Module):
         init_p = 0.1
         last_p = 0.3
         self.p = (last_p - init_p) * epoch / max_epoch + init_p
+
 
 class SobelEdgeExtractionModule(nn.Module):
     def __init__(self, device, in_channels=3):
