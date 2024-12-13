@@ -36,6 +36,7 @@ from boundary_loss import boundary_loss
 max_accuracy = 0
 min_loss = 1000
 
+
 # 12.12 实验推送
 
 def add_hook(net):
@@ -102,7 +103,10 @@ def train(network, trainloader, opti, epoch):
             # x_recon, _, _, sampled_z_q = network.module(spike_input, scheduled=glv.network_config['scheduled'])
             # losses = network.module.loss_function_mmd(edge_img, x_recon)  # 不需要r_q和r_p了
             # loss = losses['loss']
-            x_recon, _, _, _ = network.module(spike_input, scheduled=glv.network_config['scheduled'])
+            # x_recon, _, _, _ = network.module(spike_input, scheduled=glv.network_config['scheduled'])
+            # losses = network.module.loss_function(edge_img, x_recon)
+            # 修改后
+            x_recon, latent = network.module(spike_input, scheduled=glv.network_config['scheduled'])
             losses = network.module.loss_function(edge_img, x_recon)
             loss = losses['loss']
 
@@ -224,7 +228,11 @@ def test(network, testloader, epoch):
                 # 只保留x_recon，去掉r_q, r_p的计算
                 # x_recon, _, _, sampled_z_q = network.module(spike_input, scheduled=glv.network_config['scheduled'])
                 # losses = network.module.loss_function_mmd(edge_img, x_recon)  # 不需要r_q和r_p了
-                x_recon, _, _, _ = network.module(spike_input, scheduled=glv.network_config['scheduled'])
+                # x_recon, _, _, _ = network.module(spike_input, scheduled=glv.network_config['scheduled'])
+                # losses = network.module.loss_function(edge_img, x_recon)
+                # 修改后
+                x_recon, latent = network.module(spike_input,
+                                                 scheduled=glv.network_config['scheduled'])
                 losses = network.module.loss_function(edge_img, x_recon)
 
             # 检查 loss 是否包含 NaN
@@ -372,7 +380,7 @@ if __name__ == '__main__':
     except:
         add_name = None
 
-    args.name = f'edge_sae_lr-{lr}_loss_func-{loss_func}-latent_dim-{latent_dim}'
+    args.name = f'edge_sae_loss_func-{loss_func}-latent_dim-{latent_dim}'
 
     if add_name is not None:
         args.name = add_name + '-' + args.name
@@ -426,10 +434,16 @@ if __name__ == '__main__':
         net.load_state_dict(checkpoint)
 
     params = list(net.named_parameters())
+    # param_group = [
+    #     {'params': [p for n, p in params if 'sample_layer' in n], 'weight_decay': 0.001,
+    #      'lr': lr * sample_layer_lr_times},
+    #     {'params': [p for n, p in params if 'sample_layer' not in n], 'weight_decay': 0.001, 'lr': lr},
+    # ]
+    # 定义优化器的参数分组
     param_group = [
-        {'params': [p for n, p in params if 'sample_layer' in n], 'weight_decay': 0.001,
-         'lr': lr * sample_layer_lr_times},
-        {'params': [p for n, p in params if 'sample_layer' not in n], 'weight_decay': 0.001, 'lr': lr},
+        # {'params': [p for n, p in params if 'sample_layer' in n], 'weight_decay': 0.001,
+        #  'lr': lr * sample_layer_lr_times},
+        {'params': [p for n, p in params], 'weight_decay': 0.001, 'lr': lr}
     ]
 
     optimizer = torch.optim.AdamW(param_group,
