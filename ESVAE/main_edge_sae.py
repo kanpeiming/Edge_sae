@@ -26,6 +26,8 @@ from svae_models.snn_layers import LIFSpike
 # import metrics.clean_fid as clean_fid
 # import metrics.autoencoder_fid as autoencoder_fid
 from svae_models.edge_sae import SobelEdgeExtractionModule
+# 导入Canny检测
+from svae_models.edge_sae import CannyEdgeDetectionModule
 # 新增
 from torch.cuda.amp import autocast, GradScaler
 # 12.12修改，ESVAE模型不再需要,导入SAE模型
@@ -67,12 +69,14 @@ def train(network, trainloader, opti, epoch):
 
     boundary_meter = AverageMeter()  # 新增 Boundary Loss 记录器
 
+    # l2_meter = AverageMeter()   # 新增L2 Loss 记录器
+
     # mean_r_q = 0
     # mean_r_p = 0
     # mean_sampled_z_q = 0
 
     # 初始化边缘提取模块
-    edge_extractor = SobelEdgeExtractionModule(device=network.module.device,
+    edge_extractor = CannyEdgeDetectionModule(device=network.module.device,
                                                in_channels=glv.network_config['in_channels'])
     # edge_extractor = EdgeExtractionModule(device=network.device, in_channels=glv.network_config['in_channels'])
 
@@ -129,6 +133,7 @@ def train(network, trainloader, opti, epoch):
             losses['EdgeReconstruction_Loss'].detach().cpu().item())  # Reconstruction_Loss --> Edge reconstruction loss
         # dist_meter.update(losses['Distance_Loss'].detach().cpu().item())
         boundary_meter.update(losses['Boundary_Loss'].detach().cpu().item())  # 更新 Boundary Loss
+        # l2_meter.update(losses['L2_Loss'].detach().cpu().item())   # 更新 L2 Loss
 
         # mean_r_q = (r_q.mean(0).detach().cpu() + batch_idx * mean_r_q) / (batch_idx + 1)  # (latent_dim)
         # mean_r_p = (r_p.mean(0).detach().cpu() + batch_idx * mean_r_p) / (batch_idx + 1)  # (latent_dim)
@@ -140,7 +145,7 @@ def train(network, trainloader, opti, epoch):
 
         # 在第一轮时保存重构图像和边缘图像
         # 在第一轮和最后一轮，且是第一个批次时保存图像
-        if (epoch == 0 or epoch == max_epoch - 1 or epoch == 20) and batch_idx == 0:  #
+        if (epoch == 0 or epoch == max_epoch - 1) and batch_idx == 0:  #
             os.makedirs(f'{args.project_save_path}/checkpoint/{dataset_name}/{args.name}/imgs/train/', exist_ok=True)
 
             # 保存原始输入图像
@@ -180,6 +185,7 @@ def train(network, trainloader, opti, epoch):
     writer.add_scalar('Train/recons_loss', recons_meter.avg, epoch)
     # writer.add_scalar('Train/distance', dist_meter.avg, epoch)
     writer.add_scalar('Train/BOUNDARY', boundary_meter.avg, epoch)
+    # writer.add_scalar('Train/L2', l2_meter.avg, epoch)
     # writer.add_scalar('Train/mean_r_q', mean_r_q.mean().item(), epoch)
     # writer.add_scalar('Train/mean_r_p', mean_r_p.mean().item(), epoch)
 
@@ -198,6 +204,7 @@ def test(network, testloader, epoch):
     # dist_meter = AverageMeter()
 
     boundary_meter = AverageMeter()  # 新增 Boundary Loss 记录器
+    # l2_meter = AverageMeter()  # 新增L2 Loss 记录器
 
     mean_r_q = 0
     mean_r_p = 0
@@ -209,7 +216,7 @@ def test(network, testloader, epoch):
     with torch.no_grad():
 
         # 初始化边缘提取模块
-        edge_extractor = SobelEdgeExtractionModule(device=network.module.device,
+        edge_extractor = CannyEdgeDetectionModule(device=network.module.device,
                                                    in_channels=glv.network_config['in_channels'])
         # edge_extractor = EdgeExtractionModule(device=network.device, in_channels=glv.network_config['in_channels'])
         for batch_idx, (real_img, labels) in enumerate(testloader):
@@ -249,6 +256,7 @@ def test(network, testloader, epoch):
             recons_meter.update(losses['EdgeReconstruction_Loss'].detach().cpu().item())  # Edge reconstruction loss
             # dist_meter.update(losses['Distance_Loss'].detach().cpu().item())
             boundary_meter.update(losses['Boundary_Loss'].detach().cpu().item())  # 更新 Boundary Loss
+            # l2_meter.update(losses['L2_Loss'].detach().cpu().item())  # 更新 L2 Loss
 
             print(
                 f'Test[{epoch}/{max_epoch}] [{batch_idx}/{len(testloader)}] Loss: {loss_meter.avg}, RECONS: {recons_meter.avg}, BOUNDARY: {boundary_meter.avg}')  # 删除, DISTANCE: {dist_meter.avg}
@@ -285,6 +293,7 @@ def test(network, testloader, epoch):
     writer.add_scalar('Test/recons_loss', recons_meter.avg, epoch)
     # writer.add_scalar('Test/distance', dist_meter.avg, epoch)
     writer.add_scalar('Test/BOUNDARY', boundary_meter.avg, epoch)
+    # writer.add_scalar('Train/L2', l2_meter.avg, epoch)
     # writer.add_scalar('Test/mean_r_q', mean_r_q.mean().item(), epoch)
     # writer.add_scalar('Test/mean_r_p', mean_r_p.mean().item(), epoch)
     writer.add_scalar('Test/mul', count_mul_add.mul_sum.item() / len(testloader), epoch)

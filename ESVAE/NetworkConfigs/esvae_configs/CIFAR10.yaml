@@ -2,7 +2,7 @@ Network:
   epochs: 300 # 300
   batch_size: 128 # 256
   sample_batch_size: 64 # 128
-  n_steps: 16 # timestep   16
+  n_steps: 8 # timestep   16
   dataset: "CIFAR10"
   in_channels: 3
   data_path: "/data/zhan/CV_data/cifar10"
@@ -19,6 +19,6 @@ Network:
   mu: 0.0  # the mu of the normal distribution of the sampled latent vector in generating stage
   var: 1.0  # the mu of the normal distribution of the sampled latent vector in generating stage
   distance_lambda: 0.001
-  boundary_weight: 0.05  # 新增
+  boundary_weight: 0.005  # 新增
 
   

@@ -1,17 +1,17 @@
 Network:
   epochs: 300
-  batch_size: 256
+  batch_size: 128 # 256
   sample_batch_size: 256
   n_steps: 16 # timestep
   dataset: "FashionMNIST"
   in_channels: 1
   data_path: "/data/zhan/CV_data/FashionMNIST"
-  lr: 0.003
+  lr: 0.00005
   sample_layer_lr_times: 10
   n_class: 10
   latent_dim: 32
   input_size: 32
-  model: "ESVAE" # ESVAE or ESVAE_large
+  model: "SAE" # "ESVAE" # ESVAE or ESVAE_large
   k: 20 # multiplier of channel
   scheduled: true # whether to apply scheduled sampling
   loss_func: 'mmd' # mmd or kld
@@ -19,5 +19,5 @@ Network:
   mu: 0.0  # the mu of the normal distribution of the sampled latent vector in generating stage
   var: 1.0  # the mu of the normal distribution of the sampled latent vector in generating stage
   distance_lambda: 0.001
-
+  boundary_weight: 0.001  # 新增
   
